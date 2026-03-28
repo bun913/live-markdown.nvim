@@ -1,3 +1,20 @@
+# Build output
 bin/
-node_modules/
+
+# Vendored assets (downloaded at build time)
 client/vendor/
+
+# Dependencies
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+*.code-workspace
