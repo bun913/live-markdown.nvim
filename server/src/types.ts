@@ -7,7 +7,8 @@ export type NvimMessage =
 // Server -> Browser (WebSocket)
 export type BrowserMessage =
   | { type: "render"; html: string }
-  | { type: "scroll"; targetLine: number };
+  | { type: "scroll"; targetLine: number }
+  | { type: "close" };
 
 // Server -> Neovim (stdout, JSON Lines)
 export type ServerMessage =

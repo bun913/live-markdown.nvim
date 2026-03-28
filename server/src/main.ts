@@ -24,8 +24,12 @@ const CONTENT_TYPES: Record<string, string> = {
 // --- WebSocket connections ---
 
 const clients = new Set<WebSocket>();
+let lastRenderedHtml: string | null = null;
 
 function broadcast(message: BrowserMessage): void {
+  if (message.type === "render") {
+    lastRenderedHtml = message.html;
+  }
   const data = JSON.stringify(message);
   for (const ws of clients) {
     if (ws.readyState === WebSocket.OPEN) {
@@ -51,6 +55,10 @@ async function handleRequest(req: Request): Promise<Response> {
 
     socket.addEventListener("open", () => {
       clients.add(socket);
+      // 接続直後にキャッシュ済みの HTML を送信
+      if (lastRenderedHtml !== null) {
+        socket.send(JSON.stringify({ type: "render", html: lastRenderedHtml }));
+      }
       if (clients.size === 1) {
         notifyNeovim({ type: "connected" });
       }
@@ -112,7 +120,8 @@ async function readStdin(): Promise<void> {
     // pipe broken — Neovim が死んだ
   }
 
-  // stdin 閉じた = Neovim 終了 → サーバーも終了
+  // stdin 閉じた = Neovim 終了 → ブラウザを閉じてサーバーも終了
+  broadcast({ type: "close" });
   Deno.exit(0);
 }
 
@@ -135,7 +144,8 @@ function handleNvimMessage(line: string): void {
       break;
     }
     case "close": {
-      // STEP1: 単一バッファなのでサーバー終了
+      // STEP1: 単一バッファなのでブラウザを閉じてサーバー終了
+      broadcast({ type: "close" });
       Deno.exit(0);
       break;
     }
