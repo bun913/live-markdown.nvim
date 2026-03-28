@@ -1,0 +1,71 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            asset: live-markdown-linux-x64
+          - runner: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            asset: live-markdown-linux-arm64
+          - runner: macos-latest
+            target: x86_64-apple-darwin
+            asset: live-markdown-darwin-x64
+          - runner: macos-latest
+            target: aarch64-apple-darwin
+            asset: live-markdown-darwin-arm64
+          - runner: ubuntu-latest
+            target: x86_64-pc-windows-msvc
+            asset: live-markdown-windows-x64.exe
+
+    runs-on: ${{ matrix.runner }}
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Download vendored assets
+        working-directory: server
+        run: deno task setup
+
+      - name: Compile binary
+        working-directory: server
+        run: >
+          deno compile
+          --allow-net=localhost
+          --allow-read
+          --include ../client/
+          --target ${{ matrix.target }}
+          --output ../bin/${{ matrix.asset }}
+          src/main.ts
+
+      - name: Upload release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: bin/${{ matrix.asset }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update release notes
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+
