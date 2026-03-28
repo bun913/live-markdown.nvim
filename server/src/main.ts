@@ -1,4 +1,4 @@
-import { join, dirname, fromFileUrl } from "https://deno.land/std@0.224.0/path/mod.ts";
+import { join, dirname, fromFileUrl, normalize, resolve } from "https://deno.land/std@0.224.0/path/mod.ts";
 import MarkdownIt from "markdown-it";
 import type { NvimMessage, BrowserMessage, ServerMessage } from "./types.ts";
 
@@ -62,12 +62,20 @@ const CONTENT_TYPES: Record<string, string> = {
   ".html": "text/html; charset=utf-8",
   ".js": "application/javascript; charset=utf-8",
   ".css": "text/css; charset=utf-8",
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".gif": "image/gif",
+  ".svg": "image/svg+xml",
+  ".webp": "image/webp",
+  ".ico": "image/x-icon",
 };
 
 // --- WebSocket connections ---
 
 const clients = new Set<WebSocket>();
 let lastRenderedHtml: string | null = null;
+let contentBaseDir: string | null = null;
 
 function broadcast(message: BrowserMessage): void {
   if (message.type === "render") {
@@ -117,8 +125,26 @@ async function handleRequest(req: Request): Promise<Response> {
     return response;
   }
 
-  // Serve static files
   const pathname = new URL(req.url).pathname;
+
+  // Serve local images: /_local/<encoded-absolute-path>
+  if (pathname.startsWith("/_local/")) {
+    const encoded = pathname.slice("/_local/".length);
+    const filePath = decodeURIComponent(encoded);
+    const normalized = normalize(filePath);
+    try {
+      const content = await Deno.readFile(normalized);
+      const ext = normalized.slice(normalized.lastIndexOf("."));
+      const contentType = CONTENT_TYPES[ext] ?? "application/octet-stream";
+      return new Response(content, {
+        headers: { "content-type": contentType },
+      });
+    } catch {
+      return new Response("Not Found", { status: 404 });
+    }
+  }
+
+  // Serve static files
 
   // Serve mermaid.min.js from node_modules
   if (pathname === "/vendor/mermaid.min.js") {
@@ -192,7 +218,22 @@ function handleNvimMessage(line: string): void {
 
   switch (msg.type) {
     case "content": {
-      const html = md.render(msg.text);
+      if (msg.baseDir) {
+        contentBaseDir = msg.baseDir;
+      }
+      let html = md.render(msg.text);
+      if (contentBaseDir) {
+        // Rewrite relative image src to /_local/<resolved-absolute-path>
+        html = html.replace(
+          /(<img\s[^>]*src=")([^"]+)(")/g,
+          (_match, prefix, src, suffix) => {
+            // Skip absolute URLs and data URIs
+            if (/^(https?:\/\/|data:|\/\/)/.test(src)) return _match;
+            const abs = resolve(contentBaseDir!, src);
+            return `${prefix}/_local/${encodeURIComponent(abs)}${suffix}`;
+          },
+        );
+      }
       broadcast({ type: "render", html });
       break;
     }

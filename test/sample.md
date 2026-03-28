@@ -2,6 +2,8 @@
 
 This is a **test** file for the preview plugin.
 
+![image](../docs/images/icon.png)
+
 ## Features
 
 - Real-time markdown preview
