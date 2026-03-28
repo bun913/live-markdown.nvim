@@ -32,6 +32,23 @@
 }
 ```
 
+カスタムブラウザ起動方式を使う場合:
+
+```lua
+{
+  "bun913/live-markdown.nvim",
+  cmd = { "MarkdownPreview", "MarkdownPreviewStop" },
+  build = "scripts/install.sh",
+  config = function()
+    require("live-markdown").setup({
+      browser = {
+        strategy = "cmux browser open-split",
+      },
+    })
+  end,
+}
+```
+
 GitHub Releases からビルド済みバイナリを自動ダウンロードします。ランタイム依存はありません。
 
 ## 使い方

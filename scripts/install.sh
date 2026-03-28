@@ -31,8 +31,9 @@ detect_platform() {
 # Get latest release tag
 get_latest_tag() {
   curl --silent --fail "https://api.github.com/repos/${REPO}/releases/latest" \
-    | grep '"tag_name"' \
-    | sed -E 's/.*"tag_name":\s*"([^"]+)".*/\1/'
+    | grep -o '"tag_name": *"[^"]*"' \
+    | grep -o '"v[^"]*"' \
+    | tr -d '"'
 }
 
 ASSET="$(detect_platform)"
