@@ -23,11 +23,19 @@ function M.start(on_ready)
 
   local cmd
   local binary = config.values.server.binary
+  if not binary then
+    -- Auto-detect: use bin/live-markdown if it exists
+    local default_binary = plugin_root() .. "/bin/live-markdown"
+    if vim.fn.executable(default_binary) == 1 then
+      binary = default_binary
+    end
+  end
+
   if binary then
     -- Use compiled binary
     cmd = { binary }
   else
-    -- Use deno run with source
+    -- Fallback: use deno run with source
     cmd = { "deno", "run", "--allow-net=localhost", "--allow-read", plugin_root() .. "/server/src/main.ts" }
   end
 
