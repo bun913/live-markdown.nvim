@@ -1,10 +1,13 @@
 {
+  "nodeModulesDir": "auto",
   "tasks": {
-    "dev": "deno run --allow-net=localhost --allow-read src/main.ts"
+    "dev": "deno run --allow-net=localhost --allow-read src/main.ts",
+    "build": "deno compile --allow-net=localhost --allow-read --include ../client/ --output ../bin/live-markdown src/main.ts"
   },
   "imports": {
     "markdown-it": "npm:markdown-it@^14.1.0",
-    "@types/markdown-it": "npm:@types/markdown-it@^14.1.2"
+    "@types/markdown-it": "npm:@types/markdown-it@^14.1.2",
+    "mermaid": "npm:mermaid@^11"
   },
   "compilerOptions": {
     "strict": true

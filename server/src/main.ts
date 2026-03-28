@@ -10,10 +10,53 @@ const md = new MarkdownIt({
   typographer: true,
 });
 
+// Inject data-source-line attributes for scroll sync
+const defaultRender =
+  md.renderer.rules.heading_open ||
+  ((tokens: unknown[], idx: number, options: unknown, _env: unknown, self: { renderToken: (t: unknown[], i: number, o: unknown) => string }) =>
+    self.renderToken(tokens, idx, options));
+
+// Block-level open tokens: inject data-source-line via renderToken
+for (const rule of [
+  "heading_open",
+  "paragraph_open",
+  "bullet_list_open",
+  "ordered_list_open",
+  "blockquote_open",
+  "code_block",
+  "hr",
+  "table_open",
+] as const) {
+  // deno-lint-ignore no-explicit-any
+  md.renderer.rules[rule] = (tokens: any[], idx: number, options: any, env: any, self: any) => {
+    const token = tokens[idx];
+    if (token.map && token.map[0] != null) {
+      token.attrSet("data-source-line", String(token.map[0] + 1)); // 1-based
+    }
+    if (rule === "heading_open") {
+      return defaultRender(tokens, idx, options, env, self);
+    }
+    return self.renderToken(tokens, idx, options);
+  };
+}
+
+// Fence needs special handling: preserve default rendering (with <pre><code>)
+// while injecting data-source-line on the wrapping <pre>
+const defaultFence = md.renderer.rules.fence!.bind(md.renderer.rules);
+// deno-lint-ignore no-explicit-any
+md.renderer.rules.fence = (tokens: any[], idx: number, options: any, env: any, self: any) => {
+  const token = tokens[idx];
+  const line = token.map?.[0] != null ? ` data-source-line="${token.map[0] + 1}"` : "";
+  const defaultHtml: string = defaultFence(tokens, idx, options, env, self);
+  // Inject data-source-line into the <pre> tag
+  return defaultHtml.replace("<pre>", `<pre${line}>`);
+};
+
 // --- Resolve client/ directory path ---
 
 const serverDir = dirname(fromFileUrl(import.meta.url));
 const clientDir = join(serverDir, "..", "..", "client");
+const mermaidPath = join(serverDir, "..", "node_modules", "mermaid", "dist", "mermaid.min.js");
 
 const CONTENT_TYPES: Record<string, string> = {
   ".html": "text/html; charset=utf-8",
@@ -74,8 +117,22 @@ async function handleRequest(req: Request): Promise<Response> {
     return response;
   }
 
-  // Serve static files from client/ directory
+  // Serve static files
   const pathname = new URL(req.url).pathname;
+
+  // Serve mermaid.min.js from node_modules
+  if (pathname === "/vendor/mermaid.min.js") {
+    try {
+      const content = await Deno.readFile(mermaidPath);
+      return new Response(content, {
+        headers: { "content-type": "application/javascript; charset=utf-8" },
+      });
+    } catch {
+      return new Response("Not Found", { status: 404 });
+    }
+  }
+
+  // Serve files from client/ directory
   const filename = pathname === "/" ? "/index.html" : pathname;
   const filepath = join(clientDir, filename);
 

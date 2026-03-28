@@ -25,6 +25,15 @@ console.log(greeting);
 
 [Neovim](https://neovim.io) is great.
 
+## Mermaid Diagram
+
+```mermaid
+graph LR
+    A[Neovim] -->|stdin| B[Deno Server]
+    B -->|WebSocket| C[Browser]
+    C -->|Preview| D[You!]
+```
+
 ---
 
 > Edit this file and watch the preview update in real-time!

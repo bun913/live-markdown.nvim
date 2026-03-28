@@ -119,6 +119,18 @@ function M.send_content(buf_id)
   M.send({ type = "content", bufId = buf_id, text = text })
 end
 
+--- Send scroll position
+function M.send_scroll(buf_id)
+  local cursor = vim.api.nvim_win_get_cursor(0)
+  local topline = vim.fn.line("w0")
+  M.send({
+    type = "scroll",
+    bufId = buf_id,
+    topLine = topline,
+    cursorLine = cursor[1],
+  })
+end
+
 --- Stop the server
 function M.stop()
   local job_id = state.job_id()

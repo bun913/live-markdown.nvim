@@ -1,5 +1,5 @@
 // live-markdown preview client
-// WebSocket receive -> DOM update + auto-reconnect
+// WebSocket receive -> DOM update + scroll sync + auto-reconnect
 
 (function () {
   "use strict";
@@ -10,8 +10,61 @@
   var reconnectDelay = 1000;
   var closed = false; // explicitly closed by server
 
+  // --- Mermaid rendering ---
+
+  var mermaidCounter = 0;
+
+  function renderMermaidBlocks() {
+    // markdown-it renders ```mermaid as <pre><code class="language-mermaid">
+    var codeBlocks = contentEl.querySelectorAll("code.language-mermaid");
+    if (codeBlocks.length === 0) return;
+
+    var nodes = [];
+    for (var i = 0; i < codeBlocks.length; i++) {
+      var code = codeBlocks[i];
+      var pre = code.parentElement;
+      if (!pre || pre.tagName !== "PRE") continue;
+
+      // Replace <pre><code> with a <div class="mermaid">
+      var div = document.createElement("div");
+      div.className = "mermaid";
+      div.id = "mermaid-" + (++mermaidCounter);
+      div.textContent = code.textContent;
+      pre.replaceWith(div);
+      nodes.push(div);
+    }
+
+    if (nodes.length > 0) {
+      mermaid.run({ nodes: nodes }).catch(function (err) {
+        console.error("[live-markdown] mermaid error:", err);
+      });
+    }
+  }
+
+  // --- Scroll sync ---
+
+  function scrollToLine(targetLine) {
+    // Find the closest element with data-source-line <= targetLine
+    var elements = contentEl.querySelectorAll("[data-source-line]");
+    var best = null;
+    var bestLine = 0;
+
+    for (var i = 0; i < elements.length; i++) {
+      var line = parseInt(elements[i].getAttribute("data-source-line"), 10);
+      if (line <= targetLine && line > bestLine) {
+        best = elements[i];
+        bestLine = line;
+      }
+    }
+
+    if (best) {
+      best.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }
+
+  // --- Connection ---
+
   function tryClose() {
-    // window.close() has restrictions; fall back to a notice if it fails
     window.close();
     document.title = "Preview closed";
     contentEl.innerHTML =
@@ -24,7 +77,7 @@
     ws = new WebSocket(wsUrl);
 
     ws.addEventListener("open", function () {
-      reconnectDelay = 1000; // reset
+      reconnectDelay = 1000;
     });
 
     ws.addEventListener("message", function (event) {
@@ -38,9 +91,10 @@
       switch (msg.type) {
         case "render":
           contentEl.innerHTML = msg.html;
+          renderMermaidBlocks();
           break;
         case "scroll":
-          // TODO: basic scroll sync
+          scrollToLine(msg.targetLine);
           break;
         case "close":
           closed = true;

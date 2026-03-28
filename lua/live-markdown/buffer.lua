@@ -25,6 +25,17 @@ function M.start(buf_id)
     end,
   })
 
+  -- Send scroll position on cursor move
+  vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
+    group = augroup,
+    buffer = buf_id,
+    callback = function()
+      if state.server() == "running" then
+        server.send_scroll(buf_id)
+      end
+    end,
+  })
+
   -- Handle buffer switching
   vim.api.nvim_create_autocmd("BufEnter", {
     group = augroup,
