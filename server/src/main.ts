@@ -56,7 +56,7 @@ md.renderer.rules.fence = (tokens: any[], idx: number, options: any, env: any, s
 
 const serverDir = dirname(fromFileUrl(import.meta.url));
 const clientDir = join(serverDir, "..", "..", "client");
-const mermaidPath = join(serverDir, "..", "node_modules", "mermaid", "dist", "mermaid.min.js");
+const mermaidPath = join(clientDir, "vendor", "mermaid.min.js");
 
 const CONTENT_TYPES: Record<string, string> = {
   ".html": "text/html; charset=utf-8",

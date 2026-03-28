@@ -4,6 +4,7 @@ local defaults = {
   server = {
     port = 0, -- 0 = OS auto-assigns
     host = "localhost",
+    binary = nil, -- path to compiled binary (nil = use deno run)
   },
   browser = {
     strategy = "auto", -- 'auto' | 'cmux' | 'open' | 'xdg-open'

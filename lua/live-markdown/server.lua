@@ -1,15 +1,14 @@
 --- Deno server lifecycle: start, stop, stdin communication
 
+local config = require("live-markdown.config")
 local state = require("live-markdown.state")
 
 local M = {}
 
---- Resolve server entry point path from plugin root
-local function server_script_path()
+--- Resolve plugin root from this file's location
+local function plugin_root()
   local source = debug.getinfo(1, "S").source:sub(2) -- strip leading @
-  -- lua/live-markdown/server.lua -> plugin root
-  local plugin_root = vim.fn.fnamemodify(source, ":h:h:h")
-  return plugin_root .. "/server/src/main.ts"
+  return vim.fn.fnamemodify(source, ":h:h:h")
 end
 
 --- Start the server
@@ -22,15 +21,19 @@ function M.start(on_ready)
     return
   end
 
-  local script = server_script_path()
+  local cmd
+  local binary = config.values.server.binary
+  if binary then
+    -- Use compiled binary
+    cmd = { binary }
+  else
+    -- Use deno run with source
+    cmd = { "deno", "run", "--allow-net=localhost", "--allow-read", plugin_root() .. "/server/src/main.ts" }
+  end
+
   local stdout_buffer = ""
 
-  local job_id = vim.fn.jobstart({
-    "deno", "run",
-    "--allow-net=localhost",
-    "--allow-read",
-    script,
-  }, {
+  local job_id = vim.fn.jobstart(cmd, {
     stdin = "pipe",
     stdout_buffered = false,
     stderr_buffered = false,
