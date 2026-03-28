@@ -1,5 +1,5 @@
---- ブラウザ起動 — Strategy パターン
---- 'auto' は cmux の有無を判定して自動選択
+--- Browser launch — Strategy pattern
+--- 'auto' detects cmux availability and falls back to OS default
 
 local config = require("live-markdown.config")
 local state = require("live-markdown.state")

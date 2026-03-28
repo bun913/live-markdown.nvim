@@ -1,19 +1,19 @@
--- テスト用の最小設定
--- 使い方: nvim -u test/init.lua test/sample.md
+-- Minimal config for testing
+-- Usage: nvim -u test/init.lua test/sample.md
 
--- プラグインルートを runtimepath に追加
+-- Add plugin root to runtimepath
 local plugin_root = vim.fn.fnamemodify(debug.getinfo(1, "S").source:sub(2), ":h:h")
 vim.opt.rtp:prepend(plugin_root)
 
--- プラグイン読み込み
+-- Load plugin
 vim.cmd("runtime plugin/live-markdown.lua")
 
--- setup（デフォルト設定）
+-- Setup with defaults
 require("live-markdown").setup({
   browser = {
-    strategy = "open", -- macOS。Linux なら "xdg-open"
+    strategy = "open", -- macOS; use "xdg-open" on Linux
   },
 })
 
--- filetype 検知を有効化
+-- Enable filetype detection
 vim.cmd("filetype on")

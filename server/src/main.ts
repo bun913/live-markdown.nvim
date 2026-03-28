@@ -10,7 +10,7 @@ const md = new MarkdownIt({
   typographer: true,
 });
 
-// --- client/ ディレクトリのパス解決 ---
+// --- Resolve client/ directory path ---
 
 const serverDir = dirname(fromFileUrl(import.meta.url));
 const clientDir = join(serverDir, "..", "..", "client");
@@ -38,7 +38,7 @@ function broadcast(message: BrowserMessage): void {
   }
 }
 
-// --- Neovim への通知 (stdout, JSON Lines) ---
+// --- Notify Neovim (stdout, JSON Lines) ---
 
 function notifyNeovim(message: ServerMessage): void {
   const line = JSON.stringify(message) + "\n";
@@ -46,16 +46,16 @@ function notifyNeovim(message: ServerMessage): void {
   Deno.stdout.writeSync(encoder.encode(line));
 }
 
-// --- HTTP + WebSocket サーバー ---
+// --- HTTP + WebSocket server ---
 
 async function handleRequest(req: Request): Promise<Response> {
-  // WebSocket アップグレード
+  // WebSocket upgrade
   if (req.headers.get("upgrade")?.toLowerCase() === "websocket") {
     const { socket, response } = Deno.upgradeWebSocket(req);
 
     socket.addEventListener("open", () => {
       clients.add(socket);
-      // 接続直後にキャッシュ済みの HTML を送信
+      // Send cached HTML immediately on connect
       if (lastRenderedHtml !== null) {
         socket.send(JSON.stringify({ type: "render", html: lastRenderedHtml }));
       }
@@ -74,7 +74,7 @@ async function handleRequest(req: Request): Promise<Response> {
     return response;
   }
 
-  // 静的ファイル配信（client/ ディレクトリ）
+  // Serve static files from client/ directory
   const pathname = new URL(req.url).pathname;
   const filename = pathname === "/" ? "/index.html" : pathname;
   const filepath = join(clientDir, filename);
@@ -91,8 +91,8 @@ async function handleRequest(req: Request): Promise<Response> {
   }
 }
 
-// --- stdin 読み取り (JSON Lines) ---
-// 防衛線2: stdin EOF でサーバー自主シャットダウン
+// --- Read stdin (JSON Lines) ---
+// Defense line 2: auto-shutdown on stdin EOF
 
 async function readStdin(): Promise<void> {
   const decoder = new TextDecoder();
@@ -106,7 +106,7 @@ async function readStdin(): Promise<void> {
 
       buffer += decoder.decode(value, { stream: true });
 
-      // 改行区切りで1行ずつ処理
+      // Process complete lines delimited by newline
       let newlineIdx: number;
       while ((newlineIdx = buffer.indexOf("\n")) !== -1) {
         const line = buffer.slice(0, newlineIdx).trim();
@@ -117,10 +117,10 @@ async function readStdin(): Promise<void> {
       }
     }
   } catch {
-    // pipe broken — Neovim が死んだ
+    // pipe broken — Neovim died
   }
 
-  // stdin 閉じた = Neovim 終了 → ブラウザを閉じてサーバーも終了
+  // stdin closed = Neovim exited -> close browser and shut down
   broadcast({ type: "close" });
   Deno.exit(0);
 }
@@ -130,7 +130,7 @@ function handleNvimMessage(line: string): void {
   try {
     msg = JSON.parse(line) as NvimMessage;
   } catch {
-    return; // 不正な JSON は無視
+    return; // ignore malformed JSON
   }
 
   switch (msg.type) {
@@ -144,7 +144,7 @@ function handleNvimMessage(line: string): void {
       break;
     }
     case "close": {
-      // STEP1: 単一バッファなのでブラウザを閉じてサーバー終了
+      // STEP1: single buffer, so close browser and shut down server
       broadcast({ type: "close" });
       Deno.exit(0);
       break;
@@ -152,14 +152,14 @@ function handleNvimMessage(line: string): void {
   }
 }
 
-// --- エントリーポイント ---
+// --- Entry point ---
 
-// 防衛線3: port 0 で OS にランダムポートを割り当てさせる
+// Defense line 3: port 0 lets the OS assign a random port
 const server = Deno.serve({ port: 0, hostname: "localhost" }, handleRequest);
 const port = server.addr.port;
 
-// Neovim にポート番号を通知
+// Notify Neovim of the assigned port
 notifyNeovim({ type: "ready", port });
 
-// stdin の読み取りを開始（EOF でプロセス終了）
+// Start reading stdin (process exits on EOF)
 readStdin();

@@ -1,5 +1,5 @@
 // live-markdown preview client
-// WebSocket 受信 → DOM 更新 + 自動再接続
+// WebSocket receive -> DOM update + auto-reconnect
 
 (function () {
   "use strict";
@@ -8,10 +8,10 @@
   var wsUrl = "ws://" + location.host + "/";
   var ws;
   var reconnectDelay = 1000;
-  var closed = false; // サーバーから明示的に close された
+  var closed = false; // explicitly closed by server
 
   function tryClose() {
-    // window.close() は制約があるため、ダメならページ内容を差し替え
+    // window.close() has restrictions; fall back to a notice if it fails
     window.close();
     document.title = "Preview closed";
     contentEl.innerHTML =
@@ -24,7 +24,7 @@
     ws = new WebSocket(wsUrl);
 
     ws.addEventListener("open", function () {
-      reconnectDelay = 1000;
+      reconnectDelay = 1000; // reset
     });
 
     ws.addEventListener("message", function (event) {
@@ -40,7 +40,7 @@
           contentEl.innerHTML = msg.html;
           break;
         case "scroll":
-          // STEP1: 基本的なスクロール同期（後で実装）
+          // TODO: basic scroll sync
           break;
         case "close":
           closed = true;
@@ -51,7 +51,7 @@
 
     ws.addEventListener("close", function () {
       if (closed) return;
-      // 自動再接続（exponential backoff, max 10s）
+      // Auto-reconnect with exponential backoff (max 10s)
       setTimeout(connect, reconnectDelay);
       reconnectDelay = Math.min(reconnectDelay * 1.5, 10000);
     });

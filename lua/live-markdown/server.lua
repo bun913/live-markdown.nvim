@@ -1,18 +1,18 @@
---- Deno サーバーの起動・停止・stdin 通信
+--- Deno server lifecycle: start, stop, stdin communication
 
 local state = require("live-markdown.state")
 
 local M = {}
 
---- プラグインルートからサーバーエントリーポイントのパスを解決
+--- Resolve server entry point path from plugin root
 local function server_script_path()
-  local source = debug.getinfo(1, "S").source:sub(2) -- @ を除去
-  -- lua/live-markdown/server.lua → プラグインルート
+  local source = debug.getinfo(1, "S").source:sub(2) -- strip leading @
+  -- lua/live-markdown/server.lua -> plugin root
   local plugin_root = vim.fn.fnamemodify(source, ":h:h:h")
   return plugin_root .. "/server/src/main.ts"
 end
 
---- サーバーを起動
+--- Start the server
 function M.start(on_ready)
   if state.server() ~= "stopped" then
     return
@@ -43,7 +43,7 @@ function M.start(on_ready)
 
         stdout_buffer = stdout_buffer .. line
 
-        -- JSON Lines: 改行で区切られた完全な JSON を処理
+        -- JSON Lines: process complete JSON objects
         local ok, msg = pcall(vim.json.decode, stdout_buffer)
         if ok and msg then
           stdout_buffer = ""
@@ -57,7 +57,7 @@ function M.start(on_ready)
     on_stderr = function(_, data)
       for _, line in ipairs(data) do
         if line ~= "" then
-          -- Deno の "Listening on ..." 等はデバッグ用に無視
+          -- Deno's "Listening on ..." etc. — ignore for now
         end
       end
     end,
@@ -81,7 +81,7 @@ function M.start(on_ready)
   state.set_job_id(job_id)
 end
 
---- サーバーからのメッセージ処理
+--- Handle messages from the server
 function M._handle_server_message(msg, on_ready)
   if msg.type == "ready" then
     state.set_port(msg.port)
@@ -92,7 +92,7 @@ function M._handle_server_message(msg, on_ready)
     end
   elseif msg.type == "connected" then
     state.browser_transition("connected")
-    -- 接続完了時にコンテンツを再送信（タイミング問題の保険）
+    -- Resend content on connect (timing safety net)
     local buf_id = state.active_buffer()
     if buf_id and vim.api.nvim_buf_is_valid(buf_id) then
       M.send_content(buf_id)
@@ -102,7 +102,7 @@ function M._handle_server_message(msg, on_ready)
   end
 end
 
---- stdin でメッセージを送信
+--- Send a message via stdin
 function M.send(msg)
   local job_id = state.job_id()
   if not job_id or state.server() ~= "running" then
@@ -112,14 +112,14 @@ function M.send(msg)
   vim.fn.chansend(job_id, line)
 end
 
---- バッファの全文を送信
+--- Send full buffer content
 function M.send_content(buf_id)
   local lines = vim.api.nvim_buf_get_lines(buf_id, 0, -1, false)
   local text = table.concat(lines, "\n")
   M.send({ type = "content", bufId = buf_id, text = text })
 end
 
---- サーバーを停止
+--- Stop the server
 function M.stop()
   local job_id = state.job_id()
   if not job_id then

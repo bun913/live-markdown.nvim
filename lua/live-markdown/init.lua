@@ -1,5 +1,5 @@
 --- Public API: setup(), open(), close()
---- 各モジュールのオーケストレーション
+--- Orchestrates all modules
 
 local config = require("live-markdown.config")
 local state = require("live-markdown.state")
@@ -12,7 +12,7 @@ local M = {}
 function M.setup(opts)
   config.setup(opts)
 
-  -- 防衛線1: VimLeavePre で確実にクリーンアップ
+  -- Defense line 1: ensure cleanup on VimLeavePre
   vim.api.nvim_create_autocmd("VimLeavePre", {
     callback = function()
       M.close()
@@ -21,7 +21,7 @@ function M.setup(opts)
 end
 
 function M.open()
-  -- 二重起動防止
+  -- Prevent double start
   if state.server() ~= "stopped" then
     vim.notify("[live-markdown] already running", vim.log.levels.WARN)
     return
@@ -33,7 +33,7 @@ function M.open()
     return
   end
 
-  -- サーバー起動 → ready でブラウザ起動 → バッファ監視開始
+  -- Start server -> on ready, open browser -> start buffer watching
   server.start(function(port)
     browser.open(port)
     buffer.start(buf_id)

@@ -1,5 +1,5 @@
---- バッファ監視 — autocmd による変更検知・バッファ切り替え
---- state-design.md の Buffer 状態遷移に従う
+--- Buffer watching — autocmd-based change detection and buffer switching
+--- Follows the Buffer state transitions from state-design.md
 
 local state = require("live-markdown.state")
 local server = require("live-markdown.server")
@@ -14,7 +14,7 @@ function M.start(buf_id)
 
   augroup = vim.api.nvim_create_augroup("LiveMarkdown", { clear = true })
 
-  -- バッファ変更時に内容を送信
+  -- Send content on buffer change
   vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
     group = augroup,
     buffer = buf_id,
@@ -25,7 +25,7 @@ function M.start(buf_id)
     end,
   })
 
-  -- バッファ切り替え
+  -- Handle buffer switching
   vim.api.nvim_create_autocmd("BufEnter", {
     group = augroup,
     callback = function(args)
@@ -35,11 +35,11 @@ function M.start(buf_id)
 
       local ft = vim.bo[args.buf].filetype
       if ft == "markdown" then
-        -- 別の markdown バッファに切り替え → 対象更新
+        -- Switched to another markdown buffer -> update target
         state.set_active_buffer(args.buf)
         server.send_content(args.buf)
 
-        -- 新しいバッファにも TextChanged を設定
+        -- Watch the new buffer for changes too
         vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
           group = augroup,
           buffer = args.buf,
@@ -50,16 +50,16 @@ function M.start(buf_id)
           end,
         })
       end
-      -- markdown 以外 → Suspended（プレビューは維持、同期停止）
+      -- Non-markdown buffer -> Suspended (preview stays, sync paused)
     end,
   })
 
-  -- バッファ削除
+  -- Handle buffer deletion
   vim.api.nvim_create_autocmd({ "BufDelete", "BufWipeout" }, {
     group = augroup,
     buffer = buf_id,
     callback = function()
-      -- STEP1: 単一バッファなのでサーバー停止
+      -- STEP1: single buffer, so stop the server
       require("live-markdown").close()
     end,
   })

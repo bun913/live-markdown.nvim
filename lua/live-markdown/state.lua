@@ -1,10 +1,10 @@
---- 状態管理 — 設計の中心
---- state-design.md の状態遷移図をコードで表現する。
---- Error は状態ではなくイベント（遷移の原因）として扱う。
+--- State management — the design center.
+--- Encodes the state diagrams from state-design.md.
+--- Error is not a state but an event (a cause of transition).
 
 local M = {}
 
--- 許可される遷移の定義
+-- Allowed transitions
 local valid_transitions = {
   server = {
     stopped  = { starting = true },
@@ -19,11 +19,11 @@ local valid_transitions = {
   },
 }
 
--- 現在の状態
+-- Current state
 local state = {
   server = "stopped",
   browser = "disconnected",
-  buffer_id = nil, -- 将来の複数バッファ対応に備え ID で管理
+  buffer_id = nil, -- managed by ID for future multi-buffer support
   port = nil,
   job_id = nil,
 }
@@ -40,7 +40,7 @@ function M.browser()
   return state.browser
 end
 
---- 状態遷移（不正な遷移は拒否）
+--- Guarded state transition (rejects invalid ones)
 local function transition(layer, new_state)
   local current = state[layer]
   local allowed = valid_transitions[layer][current]
@@ -87,7 +87,7 @@ function M.active_buffer()
   return state.buffer_id
 end
 
---- エラー発生時: 即座に stopped/disconnected に遷移 + ユーザー通知
+--- On error: transition to stopped/disconnected immediately + notify user
 function M.on_error(err)
   state.server = "stopped"
   state.browser = "disconnected"
@@ -97,7 +97,7 @@ function M.on_error(err)
   vim.notify("[live-markdown] " .. err, vim.log.levels.ERROR)
 end
 
---- 全状態をリセット（クリーンアップ完了時）
+--- Reset all state (on cleanup completion)
 function M.reset()
   state.server = "stopped"
   state.browser = "disconnected"

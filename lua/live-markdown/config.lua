@@ -2,14 +2,14 @@ local M = {}
 
 local defaults = {
   server = {
-    port = 0, -- 0 = OS が自動割り当て
+    port = 0, -- 0 = OS auto-assigns
     host = "localhost",
   },
   browser = {
     strategy = "auto", -- 'auto' | 'cmux' | 'open' | 'xdg-open'
   },
   render = {
-    css = "github-markdown", -- 将来: テーマ名 or パス
+    css = "github-markdown", -- future: theme name or path
     mermaid = true,
   },
   scroll_sync = true,

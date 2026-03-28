@@ -1,4 +1,5 @@
 // Neovim -> Server (stdin, JSON Lines)
+// All messages include bufId for future multi-buffer support
 export type NvimMessage =
   | { type: "content"; bufId: number; text: string }
   | { type: "scroll"; bufId: number; topLine: number; cursorLine: number }
@@ -16,6 +17,6 @@ export type ServerMessage =
   | { type: "connected" }
   | { type: "disconnected" };
 
-// Browser -> Server (WebSocket) - STEP2 以降の双方向同期に備えて定義だけしておく
+// Browser -> Server (WebSocket) - defined ahead for future bidirectional sync
 export type BrowserToServerMessage =
   | { type: "scroll"; targetLine: number };

@@ -1,5 +1,5 @@
--- エントリーポイント — コマンド定義のみ
--- 実際の処理は require() で遅延ロード（起動時間に影響しない）
+-- Entry point — command definitions only
+-- Actual work is lazy-loaded via require() (no startup cost)
 
 vim.api.nvim_create_user_command("MarkdownPreview", function()
   require("live-markdown").open()
