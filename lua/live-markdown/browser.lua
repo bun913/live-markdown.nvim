@@ -38,14 +38,15 @@ function M.open(port)
     strategy_name = detect_strategy()
   end
 
-  local strategy = strategies[strategy_name]
-  if not strategy then
-    state.on_error("unknown browser strategy: " .. strategy_name)
-    return
-  end
-
   local url = string.format("http://localhost:%d", port)
-  strategy(url)
+
+  local strategy = strategies[strategy_name]
+  if strategy then
+    strategy(url)
+  else
+    -- Treat as a custom command (e.g. "cmux browser open-split")
+    vim.fn.system(strategy_name .. " " .. vim.fn.shellescape(url))
+  end
 end
 
 return M
