@@ -1,5 +1,9 @@
 import { join, dirname, fromFileUrl, normalize, resolve } from "https://deno.land/std@0.224.0/path/mod.ts";
 import MarkdownIt from "markdown-it";
+import hljs from "highlight.js";
+import taskLists from "markdown-it-task-lists";
+import mk from "@vscode/markdown-it-katex";
+import katex from "katex";
 import type { NvimMessage, BrowserMessage, ServerMessage } from "./types.ts";
 
 // --- Markdown renderer ---
@@ -8,7 +12,18 @@ const md = new MarkdownIt({
   html: true,
   linkify: true,
   typographer: true,
+  highlight(str: string, lang: string): string {
+    if (lang && hljs.getLanguage(lang)) {
+      try {
+        return hljs.highlight(str, { language: lang }).value;
+      } catch { /* fall through */ }
+    }
+    return "";
+  },
 });
+
+md.use(taskLists);
+md.use(mk.default, { katex, throwOnError: false });
 
 // Inject data-source-line attributes for scroll sync
 const defaultRender =

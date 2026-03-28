@@ -10,6 +10,12 @@ This is a **test** file for the preview plugin.
 - GitHub-flavored CSS
 - Auto light/dark theme
 
+## Tasks
+
+- [ ] Task A
+
+📖
+
 ## Code Block
 
 ```typescript
@@ -35,6 +41,20 @@ graph LR
     B -->|WebSocket| C[Browser]
     C -->|Preview| D[You!]
 ```
+
+## Strikethrough
+
+~~This text is deleted.~~
+
+## Math
+
+Inline: $E = mc^2$
+
+Block:
+
+$$
+\int_0^\infty e^{-x^2} dx = \frac{\sqrt{\pi}}{2}
+$$
 
 ---
 
