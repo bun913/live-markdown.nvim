@@ -15,7 +15,7 @@ local valid_transitions = {
   browser = {
     disconnected = { connecting = true },
     connecting   = { connected = true, disconnected = true },
-    connected    = { disconnected = true },
+    connected    = { connecting = true, disconnected = true },
   },
 }
 

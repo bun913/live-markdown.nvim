@@ -2,6 +2,10 @@
   "version": "5",
   "specifiers": {
     "npm:@types/markdown-it@^14.1.2": "14.1.2",
+    "npm:@vscode/markdown-it-katex@^1.1.2": "1.1.2",
+    "npm:highlight.js@^11.11.1": "11.11.1",
+    "npm:katex@~0.16.43": "0.16.44",
+    "npm:markdown-it-task-lists@^2.1.1": "2.1.1",
     "npm:markdown-it@^14.1.0": "14.1.1"
   },
   "npm": {
@@ -18,17 +22,39 @@
     "@types/mdurl@2.0.0": {
       "integrity": "sha512-RGdgjQUZba5p6QEFAVx2OGb8rQDL/cPRG7GiedRzMcJ1tYnUANBncjbSB1NRGwbvjcPeikRABz2nshyPk1bhWg=="
     },
+    "@vscode/markdown-it-katex@1.1.2": {
+      "integrity": "sha512-+4IIv5PgrmhKvW/3LpkpkGg257OViEhXkOOgCyj5KMsjsOfnRXkni8XAuuF9Ui5p3B8WnUovlDXAQNb8RJ/RaQ==",
+      "dependencies": [
+        "katex"
+      ]
+    },
     "argparse@2.0.1": {
       "integrity": "sha512-8+9WqebbFzpX9OR+Wa6O29asIogeRMzcGtAINdpMHHyAg10f05aSFVBbcEqGf/PXw1EjAZ+q2/bEBg3DvurK3Q=="
     },
+    "commander@8.3.0": {
+      "integrity": "sha512-OkTL9umf+He2DZkUq8f8J9of7yL6RJKI24dVITBmNfZBmri9zYZQrKkuXiKhyfPSu8tUhnVBB1iKXevvnlR4Ww=="
+    },
     "entities@4.5.0": {
       "integrity": "sha512-V0hjH4dGPh9Ao5p0MoRY6BVqtwCjhz6vI5LT8AJ55H+4g9/4vbHx1I54fS0XuclLhDHArPQCiMjDxjaL8fPxhw=="
+    },
+    "highlight.js@11.11.1": {
+      "integrity": "sha512-Xwwo44whKBVCYoliBQwaPvtd/2tYFkRQtXDWj1nackaV2JPXx3L0+Jvd8/qCJ2p+ML0/XVkJ2q+Mr+UVdpJK5w=="
+    },
+    "katex@0.16.44": {
+      "integrity": "sha512-EkxoDTk8ufHqHlf9QxGwcxeLkWRR3iOuYfRpfORgYfqc8s13bgb+YtRY59NK5ZpRaCwq1kqA6a5lpX8C/eLphQ==",
+      "dependencies": [
+        "commander"
+      ],
+      "bin": true
     },
     "linkify-it@5.0.0": {
       "integrity": "sha512-5aHCbzQRADcdP+ATqnDuhhJ/MRIqDkZX5pyjFHRRysS8vZ5AbqGEoFIb6pYHPZ+L/OC2Lc+xT8uHVVR5CAK/wQ==",
       "dependencies": [
         "uc.micro"
       ]
+    },
+    "markdown-it-task-lists@2.1.1": {
+      "integrity": "sha512-TxFAc76Jnhb2OUu+n3yz9RMu4CwGfaT788br6HhEDlvWfdeJcLUsxk1Hgw2yJio0OXsxv7pyIPmvECY7bMbluA=="
     },
     "markdown-it@14.1.1": {
       "integrity": "sha512-BuU2qnTti9YKgK5N+IeMubp14ZUKUUw7yeJbkjtosvHiP0AZ5c8IAgEMk79D0eC8F23r4Ac/q8cAIFdm2FtyoA==",
@@ -136,6 +162,10 @@
   "workspace": {
     "dependencies": [
       "npm:@types/markdown-it@^14.1.2",
+      "npm:@vscode/markdown-it-katex@^1.1.2",
+      "npm:highlight.js@^11.11.1",
+      "npm:katex@~0.16.43",
+      "npm:markdown-it-task-lists@^2.1.1",
       "npm:markdown-it@^14.1.0"
     ]
   }

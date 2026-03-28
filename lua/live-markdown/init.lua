@@ -21,9 +21,14 @@ function M.setup(opts)
 end
 
 function M.open()
-  -- Prevent double start
-  if state.server() ~= "stopped" then
-    vim.notify("[live-markdown] already running", vim.log.levels.WARN)
+  -- Already running: just re-open the browser
+  if state.server() == "running" then
+    local port = state.port()
+    if port then
+      browser.open(port)
+    end
+    return
+  elseif state.server() ~= "stopped" then
     return
   end
 
