@@ -119,7 +119,9 @@ end
 function M.send_content(buf_id)
   local lines = vim.api.nvim_buf_get_lines(buf_id, 0, -1, false)
   local text = table.concat(lines, "\n")
-  M.send({ type = "content", bufId = buf_id, text = text })
+  local bufname = vim.api.nvim_buf_get_name(buf_id)
+  local base_dir = bufname ~= "" and vim.fn.fnamemodify(bufname, ":p:h") or nil
+  M.send({ type = "content", bufId = buf_id, text = text, baseDir = base_dir })
 end
 
 --- Send scroll position

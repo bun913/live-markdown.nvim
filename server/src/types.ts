@@ -1,7 +1,7 @@
 // Neovim -> Server (stdin, JSON Lines)
 // All messages include bufId for future multi-buffer support
 export type NvimMessage =
-  | { type: "content"; bufId: number; text: string }
+  | { type: "content"; bufId: number; text: string; baseDir?: string }
   | { type: "scroll"; bufId: number; topLine: number; cursorLine: number }
   | { type: "close"; bufId: number };
 
