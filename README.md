@@ -16,7 +16,12 @@
 
 - Single binary — no runtime dependencies (Deno not required)
 - Real-time preview with scroll sync
+- Syntax highlighting (light/dark auto-switch)
+- Math rendering (KaTeX)
 - Mermaid diagram rendering
+- Task lists (`- [x]` / `- [ ]`)
+- Strikethrough (`~~text~~`)
+- Local image preview (relative paths supported)
 - GitHub-flavored styling (light/dark auto-switch)
 
 ## Installation
