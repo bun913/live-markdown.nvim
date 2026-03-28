@@ -1,3 +1,4 @@
+import { join, dirname, fromFileUrl } from "https://deno.land/std@0.224.0/path/mod.ts";
 import MarkdownIt from "markdown-it";
 import type { NvimMessage, BrowserMessage, ServerMessage } from "./types.ts";
 
@@ -8,6 +9,17 @@ const md = new MarkdownIt({
   linkify: true,
   typographer: true,
 });
+
+// --- client/ ディレクトリのパス解決 ---
+
+const serverDir = dirname(fromFileUrl(import.meta.url));
+const clientDir = join(serverDir, "..", "..", "client");
+
+const CONTENT_TYPES: Record<string, string> = {
+  ".html": "text/html; charset=utf-8",
+  ".js": "application/javascript; charset=utf-8",
+  ".css": "text/css; charset=utf-8",
+};
 
 // --- WebSocket connections ---
 
@@ -32,7 +44,7 @@ function notifyNeovim(message: ServerMessage): void {
 
 // --- HTTP + WebSocket サーバー ---
 
-function handleRequest(req: Request): Response {
+async function handleRequest(req: Request): Promise<Response> {
   // WebSocket アップグレード
   if (req.headers.get("upgrade")?.toLowerCase() === "websocket") {
     const { socket, response } = Deno.upgradeWebSocket(req);
@@ -54,64 +66,21 @@ function handleRequest(req: Request): Response {
     return response;
   }
 
-  // 静的ファイル配信は STEP2 以降。今は最小限の HTML を返す
-  if (new URL(req.url).pathname === "/") {
-    return new Response(generatePreviewHtml(), {
-      headers: { "content-type": "text/html; charset=utf-8" },
+  // 静的ファイル配信（client/ ディレクトリ）
+  const pathname = new URL(req.url).pathname;
+  const filename = pathname === "/" ? "/index.html" : pathname;
+  const filepath = join(clientDir, filename);
+
+  try {
+    const content = await Deno.readFile(filepath);
+    const ext = filename.slice(filename.lastIndexOf("."));
+    const contentType = CONTENT_TYPES[ext] ?? "application/octet-stream";
+    return new Response(content, {
+      headers: { "content-type": contentType },
     });
+  } catch {
+    return new Response("Not Found", { status: 404 });
   }
-
-  return new Response("Not Found", { status: 404 });
-}
-
-function generatePreviewHtml(): string {
-  return `<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>live-markdown preview</title>
-  <style>
-    body {
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 2rem;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-      line-height: 1.6;
-      color: #24292f;
-    }
-    @media (prefers-color-scheme: dark) {
-      body { background: #0d1117; color: #e6edf3; }
-      a { color: #58a6ff; }
-    }
-    .connecting { color: #888; text-align: center; padding: 2rem; }
-  </style>
-</head>
-<body>
-  <div id="content"><p class="connecting">Connecting...</p></div>
-  <script>
-    const contentEl = document.getElementById('content');
-    const wsUrl = 'ws://' + location.host + '/';
-    let ws;
-
-    function connect() {
-      ws = new WebSocket(wsUrl);
-      ws.addEventListener('message', (event) => {
-        const msg = JSON.parse(event.data);
-        if (msg.type === 'render') {
-          contentEl.innerHTML = msg.html;
-        } else if (msg.type === 'scroll') {
-          // STEP1: 基本的なスクロール同期（後で実装）
-        }
-      });
-      ws.addEventListener('close', () => {
-        setTimeout(connect, 1000);
-      });
-    }
-    connect();
-  </script>
-</body>
-</html>`;
 }
 
 // --- stdin 読み取り (JSON Lines) ---
