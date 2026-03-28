@@ -10,9 +10,9 @@ vim.cmd("runtime plugin/live-markdown.lua")
 
 -- Setup with defaults
 require("live-markdown").setup({
-  browser = {
-    strategy = "open", -- macOS; use "xdg-open" on Linux
-  },
+	browser = {
+		strategy = "cmux browser open-split", -- macOS; use "xdg-open" on Linux
+	},
 })
 
 -- Enable filetype detection
