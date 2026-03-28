@@ -16,7 +16,7 @@ Examples:
 - Error is an event (cause of transition), not a state. When an error occurs, the server transitions to Stopped — never left dangling in an "Error" state
 - Buffer switching behavior is organized by state (Active / Suspended / Closed), not by operation (what to do when BufEnter fires)
 
-See `docs/state-design.md` for details.
+See `docs/architecture.md` for details.
 
 ### 2. Design compromises as STEP1 of the ideal
 
@@ -29,17 +29,13 @@ Examples:
 - Diagram rendering runs client-side via mermaid.js (PlantUML etc. can be added the same way)
 - Browser launch uses the Strategy pattern (presets + arbitrary command strings)
 
-See `docs/step1-design.md` for details.
+See `docs/architecture.md` for details.
 
-## Design Documents
+## Design Document
 
-Read these before implementing:
+Read before implementing:
 
-| Document | Content | When to read |
-|---|---|---|
-| `docs/architecture.md` | Tech stack, design rationale, distribution | First |
-| `docs/state-design.md` | State diagrams, invariants, edge cases, error notification | When writing state-related code |
-| `docs/step1-design.md` | Directory structure, module responsibilities, protocol, cleanup | When implementing |
+`docs/architecture.md` — Tech stack, state design, communication protocol, distribution, and rationale.
 
 ## Tech Stack
 
@@ -66,7 +62,7 @@ Read these before implementing:
 ### Process cleanup
 - Triple defense: VimLeavePre autocmd + stdin EOF detection + auto port assignment
 - Never repeat markdown-preview.nvim's orphan process problem
-- See "Process Lifecycle and Cleanup" in `docs/step1-design.md`
+- See "Process Cleanup — Triple Defense" in `docs/architecture.md`
 
 ### Preserve future-ready structure
 - Never omit `bufId` from messages

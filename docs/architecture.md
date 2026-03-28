@@ -17,6 +17,66 @@ A markdown preview plugin for Neovim. A Deno-based local server renders markdown
 | Server <-> Browser | WebSocket | Real-time delivery (render / scroll / close) |
 | Code highlighting | TBD | highlight.js vs Shiki (STEP2+) |
 
+## Design Philosophy
+
+### Focus on state, not operations
+
+Ref: https://zenn.dev/knowledgework/articles/c48539d2f35ecc
+
+Design from "what states are possible" rather than "what operations to perform". State-first thinking reveals edge cases naturally, while operation-first thinking leads to ad-hoc if-branches.
+
+### Design compromises as STEP1 of the ideal
+
+Ref: https://zenn.dev/knowledgework/articles/c3f2f5986a24a6
+
+Envision the ideal final form and design STEP1 toward it, so future extensions require minimal changes.
+
+## State Design
+
+Three layers of state govern the plugin:
+
+### Server State
+
+```
+[*] -> Stopped -> Starting -> Running -> Stopping -> Stopped
+```
+
+- Error is an event (cause of transition), not a state
+- On error, the server transitions immediately to Stopped — never left dangling
+- `state.lua` enforces valid transitions via a `valid_transitions` table
+
+### Browser Connection State
+
+```
+[*] -> Disconnected -> Connecting -> Connected -> Disconnected
+```
+
+- Driven by `connected` / `disconnected` messages from the server (stdout JSON Lines)
+- On connect, the server sends cached HTML immediately for instant first render
+
+### Buffer State
+
+```
+[*] -> Inactive -> Active <-> Editing (debounce)
+                -> Suspended (non-markdown buffer focused)
+                -> Closed (buffer deleted)
+```
+
+- **Suspended**: preview stays on last markdown content, sync paused, server keeps running
+- **Active**: returning to a markdown buffer resumes sync
+
+### Invariants
+
+- Server=Stopped implies Browser=Disconnected (always)
+- Browser=Connected implies Server=Running (always)
+- At most one Running server at a time (port conflict prevention)
+
+### Process Cleanup — Triple Defense
+
+1. **VimLeavePre autocmd**: `close()` -> `jobstop()`
+2. **stdin EOF detection**: Deno server shuts down when stdin closes (covers Neovim crash / `kill -9`)
+3. **Auto port assignment**: `port: 0` lets OS assign a random port, preventing conflicts from orphaned processes
+
 ## Architecture Diagram
 
 ```

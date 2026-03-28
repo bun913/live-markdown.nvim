@@ -4,38 +4,37 @@
 (function () {
   "use strict";
 
-  var contentEl = document.getElementById("content");
-  var wsUrl = "ws://" + location.host + "/";
-  var ws;
-  var reconnectDelay = 1000;
-  var closed = false; // explicitly closed by server
+  const contentEl = document.getElementById("content");
+  const wsUrl = `ws://${location.host}/`;
+  let ws;
+  let reconnectDelay = 1000;
+  let closed = false; // explicitly closed by server
 
   // --- Mermaid rendering ---
 
-  var mermaidCounter = 0;
+  let mermaidCounter = 0;
 
   function renderMermaidBlocks() {
     // markdown-it renders ```mermaid as <pre><code class="language-mermaid">
-    var codeBlocks = contentEl.querySelectorAll("code.language-mermaid");
+    const codeBlocks = contentEl.querySelectorAll("code.language-mermaid");
     if (codeBlocks.length === 0) return;
 
-    var nodes = [];
-    for (var i = 0; i < codeBlocks.length; i++) {
-      var code = codeBlocks[i];
-      var pre = code.parentElement;
+    const nodes = [];
+    for (const code of codeBlocks) {
+      const pre = code.parentElement;
       if (!pre || pre.tagName !== "PRE") continue;
 
       // Replace <pre><code> with a <div class="mermaid">
-      var div = document.createElement("div");
+      const div = document.createElement("div");
       div.className = "mermaid";
-      div.id = "mermaid-" + (++mermaidCounter);
+      div.id = `mermaid-${++mermaidCounter}`;
       div.textContent = code.textContent;
       pre.replaceWith(div);
       nodes.push(div);
     }
 
     if (nodes.length > 0) {
-      mermaid.run({ nodes: nodes }).catch(function (err) {
+      mermaid.run({ nodes }).catch((err) => {
         console.error("[live-markdown] mermaid error:", err);
       });
     }
@@ -45,14 +44,14 @@
 
   function scrollToLine(targetLine) {
     // Find the closest element with data-source-line <= targetLine
-    var elements = contentEl.querySelectorAll("[data-source-line]");
-    var best = null;
-    var bestLine = 0;
+    const elements = contentEl.querySelectorAll("[data-source-line]");
+    let best = null;
+    let bestLine = 0;
 
-    for (var i = 0; i < elements.length; i++) {
-      var line = parseInt(elements[i].getAttribute("data-source-line"), 10);
+    for (const el of elements) {
+      const line = parseInt(el.getAttribute("data-source-line"), 10);
       if (line <= targetLine && line > bestLine) {
-        best = elements[i];
+        best = el;
         bestLine = line;
       }
     }
@@ -76,15 +75,15 @@
     if (closed) return;
     ws = new WebSocket(wsUrl);
 
-    ws.addEventListener("open", function () {
+    ws.addEventListener("open", () => {
       reconnectDelay = 1000;
     });
 
-    ws.addEventListener("message", function (event) {
-      var msg;
+    ws.addEventListener("message", (event) => {
+      let msg;
       try {
         msg = JSON.parse(event.data);
-      } catch (e) {
+      } catch {
         return;
       }
 
@@ -103,7 +102,7 @@
       }
     });
 
-    ws.addEventListener("close", function () {
+    ws.addEventListener("close", () => {
       if (closed) return;
       // Auto-reconnect with exponential backoff (max 10s)
       setTimeout(connect, reconnectDelay);
