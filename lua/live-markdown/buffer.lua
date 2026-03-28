@@ -50,13 +50,22 @@ function M.start(buf_id)
         state.set_active_buffer(args.buf)
         server.send_content(args.buf)
 
-        -- Watch the new buffer for changes too
+        -- Watch the new buffer for changes and cursor movement
         vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
           group = augroup,
           buffer = args.buf,
           callback = function()
             if state.server() == "running" then
               server.send_content(args.buf)
+            end
+          end,
+        })
+        vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
+          group = augroup,
+          buffer = args.buf,
+          callback = function()
+            if state.server() == "running" then
+              server.send_scroll(args.buf)
             end
           end,
         })
