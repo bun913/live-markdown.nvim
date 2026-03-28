@@ -34,6 +34,23 @@
 }
 ```
 
+With a custom browser strategy:
+
+```lua
+{
+  "bun913/live-markdown.nvim",
+  cmd = { "MarkdownPreview", "MarkdownPreviewStop" },
+  build = "scripts/install.sh",
+  config = function()
+    require("live-markdown").setup({
+      browser = {
+        strategy = "cmux browser open-split",
+      },
+    })
+  end,
+}
+```
+
 Pre-built binaries are downloaded from GitHub Releases. No runtime dependencies required.
 
 ## Usage
