@@ -10,6 +10,20 @@
   let reconnectDelay = 1000;
   let closed = false; // explicitly closed by server
 
+  // --- KaTeX math rendering ---
+
+  function renderMath() {
+    if (typeof renderMathInElement === "function") {
+      renderMathInElement(contentEl, {
+        delimiters: [
+          { left: "$$", right: "$$", display: true },
+          { left: "$", right: "$", display: false },
+        ],
+        throwOnError: false,
+      });
+    }
+  }
+
   // --- Mermaid rendering ---
 
   let mermaidCounter = 0;
@@ -90,6 +104,7 @@
       switch (msg.type) {
         case "render":
           contentEl.innerHTML = msg.html;
+          renderMath();
           renderMermaidBlocks();
           break;
         case "scroll":

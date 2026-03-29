@@ -1,4 +1,4 @@
---- Deno server lifecycle: start, stop, stdin communication
+--- Server lifecycle: start, stop, stdin communication
 
 local config = require("live-markdown.config")
 local state = require("live-markdown.state")
@@ -32,11 +32,10 @@ function M.start(on_ready)
   end
 
   if binary then
-    -- Use compiled binary
     cmd = { binary }
   else
-    -- Fallback: use deno run with source
-    cmd = { "deno", "run", "--allow-net=localhost", "--allow-read", plugin_root() .. "/server/src/main.ts" }
+    state.on_error("live-markdown binary not found. Run scripts/install.sh")
+    return
   end
 
   local stdout_buffer = ""
@@ -68,7 +67,7 @@ function M.start(on_ready)
     on_stderr = function(_, data)
       for _, line in ipairs(data) do
         if line ~= "" then
-          -- Deno's "Listening on ..." etc. — ignore for now
+          -- Server stderr output — ignore for now
         end
       end
     end,
@@ -85,7 +84,7 @@ function M.start(on_ready)
   })
 
   if job_id <= 0 then
-    state.on_error("failed to start server (is deno installed?)")
+    state.on_error("failed to start server")
     return
   end
 

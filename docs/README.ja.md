@@ -12,7 +12,7 @@
 
 ## 特徴
 
-- シングルバイナリ — ランタイム依存なし（Deno のインストール不要）
+- シングルバイナリ — ランタイム依存なし
 - リアルタイムプレビュー + スクロール同期
 - シンタックスハイライト（ライト/ダーク自動切替）
 - 数式レンダリング（KaTeX）
@@ -70,7 +70,7 @@ require("live-markdown").setup({
   server = {
     port = 0,            -- 0 = OS が自動割り当て
     host = "localhost",
-    binary = nil,        -- コンパイル済みバイナリのパス（nil = deno run を使用）
+    binary = nil,        -- コンパイル済みバイナリのパス（nil = bin/live-markdown を自動検出）
   },
   browser = {
     strategy = "auto",   -- "auto" | "open" | "xdg-open" | 任意のコマンド
