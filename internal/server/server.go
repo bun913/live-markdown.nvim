@@ -22,13 +22,13 @@ import (
 
 // Server is the preview HTTP/WebSocket server.
 type Server struct {
-	clientFS  embed.FS
-	staticFS  embed.FS
-	nvimOut   *jsonlines.Writer
-	mu        sync.Mutex
-	clients   map[*websocket.Conn]context.CancelFunc
-	lastHTML  string
-	baseDir   string
+	clientFS embed.FS
+	staticFS embed.FS
+	nvimOut  *jsonlines.Writer
+	mu       sync.Mutex
+	clients  map[*websocket.Conn]context.CancelFunc
+	lastHTML string
+	baseDir  string
 }
 
 // New creates a new Server.
