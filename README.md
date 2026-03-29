@@ -14,7 +14,7 @@
 
 ## Features
 
-- Single binary — no runtime dependencies (Deno not required)
+- Single binary — no runtime dependencies
 - Real-time preview with scroll sync
 - Syntax highlighting (light/dark auto-switch)
 - Math rendering (KaTeX)
@@ -72,7 +72,7 @@ require("live-markdown").setup({
   server = {
     port = 0,            -- 0 = OS auto-assigns
     host = "localhost",
-    binary = nil,        -- path to compiled binary (nil = use deno run)
+    binary = nil,        -- path to compiled binary (nil = auto-detect bin/live-markdown)
   },
   browser = {
     strategy = "auto",   -- "auto" | "open" | "xdg-open" | custom command

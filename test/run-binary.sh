@@ -1,10 +1,12 @@
 #!/bin/bash
-# Test with compiled binary
+# Test with pre-built binary (no Go build)
 # Usage: ./test/run-binary.sh
 
 cd "$(dirname "$0")/.."
 
-# Build binary (includes mermaid.min.js download)
-cd server && deno task build && cd ..
+if [ ! -x bin/live-markdown ]; then
+  echo "Binary not found. Run 'go build -o bin/live-markdown ./cmd/live-markdown' or scripts/install.sh first."
+  exit 1
+fi
 
-nvim -u test/init-binary.lua test/sample.md
+nvim -u test/init.lua test/sample.md

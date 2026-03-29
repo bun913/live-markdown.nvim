@@ -1,11 +1,15 @@
 # Build output
 bin/
 
-# Vendored assets (downloaded at build time)
-client/vendor/
-
-# Dependencies
-node_modules/
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+vendor/
 
 # OS
 .DS_Store
