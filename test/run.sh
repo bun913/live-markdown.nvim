@@ -4,7 +4,7 @@
 
 cd "$(dirname "$0")/.."
 
-# Ensure vendored assets (mermaid.min.js) are downloaded
-cd server && deno task setup && cd ..
+# Build Go binary
+go build -o bin/live-markdown ./cmd/live-markdown
 
 nvim -u test/init.lua test/sample.md

@@ -8,7 +8,7 @@ vim.opt.rtp:prepend(plugin_root)
 -- Load plugin
 vim.cmd("runtime plugin/live-markdown.lua")
 
--- Setup with defaults
+-- Setup (binary auto-detected from bin/live-markdown)
 require("live-markdown").setup({
 	browser = {
 		strategy = "cmux browser open-split", -- macOS; use "xdg-open" on Linux

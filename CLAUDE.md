@@ -40,12 +40,14 @@ Read before implementing:
 ## Tech Stack
 
 - **Neovim plugin**: Lua (no external dependencies)
-- **Preview server**: Deno (TypeScript)
-- **Markdown parser**: markdown-it (server-side rendering)
-- **CSS**: github-markdown-css (loaded from CDN)
-- **Diagrams**: mermaid.js (downloaded at build time from CDN, rendered client-side)
+- **Preview server**: Go (single binary, `go:embed` for all assets)
+- **Markdown parser**: goldmark + GFM extension (server-side rendering)
+- **Syntax highlighting**: chroma (server-side, CSS class-based)
+- **Math rendering**: KaTeX (client-side via auto-render)
+- **CSS**: github-markdown-css (bundled in `static/`)
+- **Diagrams**: mermaid.js (bundled in `static/`, rendered client-side)
 - **Communication**: Neovim <-> Server via stdin/stdout (JSON Lines), Server <-> Browser via WebSocket
-- **Distribution**: `deno compile` single binary -> GitHub Releases (users do not need Deno)
+- **Distribution**: Go cross-compile single binary -> GitHub Releases
 
 ## Implementation Rules
 
@@ -72,10 +74,26 @@ Read before implementing:
 
 - **Neovim <-> Server communication**: stdin/stdout JSON Lines (not WebSocket)
 - **mermaid rendering**: Client-side (`mermaid.run()` in the browser, not server-side)
-- **mermaid distribution**: Downloaded from CDN at build time to `client/vendor/mermaid.min.js`, served as `/vendor/mermaid.min.js`
-- **github-markdown-css**: Loaded from CDN (cdnjs), not bundled
-- **Scroll sync**: `data-source-line` attribute + `scrollIntoView()`
-- **Fence rule**: Special handling to inject `data-source-line` on `<pre>` tags while preserving class attributes
+- **KaTeX rendering**: Client-side (`renderMathInElement()` in the browser)
+- **Static assets**: All bundled in `static/` and committed to git (no CDN, no build-time downloads)
+- **Scroll sync**: `data-source-line` attribute via goldmark AST transformer + `scrollIntoView()`
+- **Image paths**: Server rewrites relative src to `/_local/<absolute-path>`, served from local filesystem
 - **Browser launch**: Presets + arbitrary command strings executed directly
 - **Initial connection**: Server caches last rendered HTML, sends immediately on WebSocket connect
 - **Server shutdown**: Sends `close` message to browser, attempts `window.close()`
+
+## Project Structure
+
+```
+cmd/live-markdown/main.go    # Go server entry point
+internal/                     # Go server internals
+  message/types.go            # JSON Lines message types
+  jsonlines/                  # stdin/stdout reader/writer
+  markdown/renderer.go        # goldmark pipeline + source-line + image rewrite
+  server/server.go            # HTTP + WebSocket server
+assets.go                     # go:embed directives
+static/                       # Bundled assets (CSS, fonts, JS)
+client/                       # Browser client (index.html, preview.js)
+lua/live-markdown/            # Neovim plugin (Lua)
+scripts/install.sh            # Binary installer from GitHub Releases
+```
