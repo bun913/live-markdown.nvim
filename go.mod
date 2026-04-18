@@ -1,6 +1,8 @@
 module github.com/bun913/live-markdown.nvim
 
-go 1.22.3
+go 1.26
+
+toolchain go1.26.2
 
 require (
 	github.com/alecthomas/chroma/v2 v2.23.1
