@@ -13,7 +13,7 @@ jobs:
 
       - uses: actions/setup-go@v5
         with:
-          go-version-file: .tool-versions
+          go-version-file: go.mod
 
       - name: Check formatting
         run: |
